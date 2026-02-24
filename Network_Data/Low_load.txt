@@ -15,8 +15,8 @@
   5 ,  14,    8.4
   6 ,  14,    8.4
 //BEGIN GENERATOR DATA (BUS_NR, MVA_SIZE, P_GEN [MW], P_max [MW], Q_max [MVAr], Q_min [MVAr], X, X2, X0, Xn, GRND) // GRND: 1=grounded; 0:ungrounded
-  1     ,  100.0  ,  23 , 95.0, 87.0 , -87.0, 0.14, 0.14, 0.05, 0.03, 1    
-  7     ,  200.0  ,  47 , 190, 43.5 , -43.5, 0.14 , 0.2 , 0.05 , 0.03 , 1
+  1     ,  100.0  ,  23 , 95.0, 43.5 , -43.5, 0.14, 0.14, 0.05, 0.03, 1    
+  7     ,  200.0  ,  47 , 190 , 87.0 , -87.0, 0.07, 0.07, 0.05 , 0.03 , 1
 //BEGIN LINE DATA (FROM_BUS, TO_BUS, ID, R, X, B, MVA_rating, X2, X0) // All branch impedances and susceptances (lines and transformers) on system base	
     2 ,   3 , 'A ' , 0.002268 , 0.0141777 , 0.052371, 400 , 0.00000 , 0.00000 
     3 ,   4 , 'B ' , 0.005747 , 0.0359168 , 0.132673, 400 , 0.00000 , 0.00000
