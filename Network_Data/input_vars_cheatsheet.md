@@ -41,8 +41,8 @@ definition of the input parameters of the grid's components
 - TO_BUS (Integer): The ending bus number of the line.
 - ID (String): A unique branch identifier (useful for parallel lines).
 - R (Float): The series resistance in p.u.
-- X (Float): The series reactance in p.u.
-- B (Float): The total shunt susceptance in p.u.
+- X (Float): The series reactance in p.u. calculate it from the line's inductance given in the datasheet.
+- B (Float): The total shunt susceptance in p.u. calculate it from the line capacitance given in the datasheet. Don' t forget the *2 factor.
 - MVA_rating (Float): The maximum thermal capacity limit of the line in MVA.
 - X2 (Float): The negative sequence reactance (used in fault analysis).
 - X0 (Float): The zero sequence reactance (used in ground fault analysis).
