@@ -10,7 +10,7 @@ import LoadNetworkData as lnd     # load the network data to global variables
 max_iter = 30   # Iteration settings
 err_tol = 1e-6  # Specify error tolerance
 # Load the Network data ...
-filename = "./Network_Data/Low_load.txt" # set the correct path to the system .txt file
+filename = "./Network_Data/High_load.txt" # set the correct path to the system .txt file
 lnd.LoadNetworkData(filename) # makes Ybus available as lnd.Ybus etc.
 
 
