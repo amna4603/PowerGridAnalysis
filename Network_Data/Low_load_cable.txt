@@ -1,13 +1,13 @@
 //BEGIN MVA SYSTEM BASE DATA
     100 
 //BEGIN BUS DATA,(BUS_NR, LABEL, Voltage magnitude[pu], Voltage angle [degree], BUSCODE [1: PQ, 2: PV, 3: ref] V_rated [kV)], V_min [pu], V_max [pu])
-    1 , 'BUS1 ' , 1.05 , 0.00 , 3 ,  13.8 , 0.95 , 1.05 
+    1 , 'BUS1 ' , 1.00 , 0.00 , 3 ,  13.8 , 0.95 , 1.05 
     2 , 'BUS2 ' , 1.00 , 0.00 , 1 , 230.0 , 0.95 , 1.05
     3 , 'BUS3 ' , 1.00 , 0.00 , 1 , 230.0 , 0.95 , 1.05
     4 , 'BUS4 ' , 1.00 , 0.00 , 1 , 230.0 , 0.95 , 1.05
     5 , 'BUS5 ' , 1.00 , 0.00 , 1 , 230.0 , 0.95 , 1.05
     6 , 'BUS6 ' , 1.00 , 0.00 , 1 , 230.0 , 0.95 , 1.05
-    7 , 'BUS7 ' , 1.040 , 0.00 , 2 ,  15.0 , 0.95 , 1.05
+    7 , 'BUS7 ' , 1.00 , 0.00 , 2 ,  15.0 , 0.95 , 1.05
 //BEGIN LOAD DATA (BUS_NR, P_load MW, Q_load MVAR)   //Low
   2 ,  14,    8.4
   3 ,  14,    8.4
