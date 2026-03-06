@@ -10,8 +10,13 @@ import LoadNetworkData as lnd     # load the network data to global variables
 max_iter = 30   # Iteration settings
 err_tol = 1e-6  # Specify error tolerance
 # Load the Network data ...
-filename = "./Network_Data/Low_load.txt" # set the correct path to the system .txt file
-lnd.LoadNetworkData(filename) # makes Ybus available as lnd.Ybus etc.
+filename = "./Network_Data/High_load.txt"
+filename2 = "./Network_Data/Low_load.txt"
+filename3 = "./Network_Data/High_load_cable.txt" 
+filename4 = "./Network_Data/High_load_cable_tap.txt"
+filename5 = "./Network_Data/Low_load_cable.txt"
+lnd.LoadNetworkData(filename4) # makes Ybus available as lnd.Ybus etc.
+
 
 
 # Carry out the power flow analysis ...
