@@ -29,23 +29,23 @@ def LoadNetworkData4FA(filename):
         
         #Update the bus admittance matrix
         Ybus[ind_fr,ind_fr]+= Y_se
-        Ybus[ind_to,ind_to]+= -Y_se
+        Ybus[ind_to,ind_to]+= Y_se
         Ybus[ind_fr,ind_to]+= -Y_se
-        Ybus[ind_to,ind_fr]+= Y_se
+        Ybus[ind_to,ind_fr]+= -Y_se
         #negative sequence
         Z2 = 1j*X2
         Y2 = 1/Z2
         Ybus2[ind_fr,ind_fr]+= Y2
-        Ybus2[ind_to,ind_to]+= -Y2 
+        Ybus2[ind_to,ind_to]+= Y2 
         Ybus2[ind_fr,ind_to]+= -Y2
-        Ybus2[ind_to,ind_fr]+= Y2
+        Ybus2[ind_to,ind_fr]+= -Y2
         #zero sequence
         Z0 = 1j*X0
         Y0 = 1/Z0
         Ybus0[ind_fr,ind_fr]+= Y0
-        Ybus0[ind_to,ind_to]+= -Y0
+        Ybus0[ind_to,ind_to]+= Y0
         Ybus0[ind_fr,ind_to]+= -Y0
-        Ybus0[ind_to,ind_fr]+= Y0
+        Ybus0[ind_to,ind_fr]+= -Y0
 
     # Add the transformer model to Ybus
     #bus_fr, bus_to, id_, R,X,n,ang1,fr_co, to_co, X2, X0 
@@ -136,7 +136,7 @@ def LoadNetworkData4FA(filename):
         #zero sequence
         Z0 = 1j*X0*mva_base/MVA_size 
         if ground:
-            Z0 += Xn
+            Z0 += 1j*Xn*3*mva_base/MVA_size
         Y0 = 1/Z0
         Ybus0[ind_bus,ind_bus]+= Y0
    
