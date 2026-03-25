@@ -87,46 +87,41 @@ def Convert_Sequence2Phase_Voltages(Vseq_mat):
 # ####################################################
 # 2. the DisplayFaultAnalysisResults() function
 def DisplayFaultAnalysisResults(Iph,Vph_mat,fault_bus,fault_type,Zf,Vf):
+    fault_types = ['3-phase balanced fault',
+                   'Single Line-to-Ground fault',
+                   'Line-to-Line fault',
+                   'Double Line-to-Ground fault'
+                   ]
+    fault_phases = ''
+    if Iph[0] != 0:
+        fault_phases += 'a'
+    if Iph[1] != 0:
+        fault_phases += 'b'
+    if Iph[2] != 0:
+        fault_phases += 'c'
+
     print('=================================================================')
-    print('|                  Fault Analysis Results                       |')
+    print('|                    Fault Analysis Results                     |')
     print('=================================================================')
-
-    if fault_type == 0:
-        print(f'| 3-Phase Balanced Fault at Bus {fault_bus}                           |')
-    elif fault_type == 1:
-        print(f'|Single Line-to-Ground fault at Bus {fault_bus}, phase a                  |')
-    elif fault_type == 2:
-        print(f'|Line-to-Line fault at Bus {fault_bus}                                |')
-    elif fault_type == 3:
-        print(f'|Double Line-to-Ground fault at Bus {fault_bus}                       |')
-    
-    print(f'|Prefault Voltage: Vf = {Vf:.4f}  (pu)                            |')
-    print(f'|Fault impedance:  Zf = {Zf:.4f}  (pu)                            |')
-
-    Iph_mag = np.abs(Iph)
-    Iph_phase_rad = np.angle(Iph)
-    Iph_phase_deg = np.rad2deg(Iph_phase_rad)
-
-    print('|Phase Currents ------------------------------------------------|')
-    print('|--------------                                                 |')
-    print('|     ---- Phase a ---- | ---- Phase b ---- | ---- Phase c ---- |')
-    print('|     ----------------- | ----------------- | ----------------- |')
-    print('|      Mag(pu) Ang(deg) |  Mag(pu) Ang(deg) |  Mag(pu) Ang(deg) |')
-    print(f'|     {Iph_mag[0]:6.3f} {Iph_phase_deg[0]:6.0f}       {Iph_mag[1]:6.3f} {Iph_phase_deg[1]:4.0f}         {Iph_mag[2]:6.3f} {Iph_phase_deg[2]:6.0f}     |')
-    print('================================================================')
-    print('|Phase Line-to-Ground Voltages ---------------------------------|')
-    print('|-----------------------------                                  |')
-    print('|   | ---- Phase a ---- | ---- Phase b ---- | ---- Phase c ---- |')
-    print('|Bus|-------------------|-------------------|-------------------|')
-    print('|   |  Mag(pu) Ang(deg) |  Mag(pu) Ang(deg) |  Mag(pu) Ang(deg) |')
-    print('|---| -------- -------- |  ------- -------- |  ------- -------- |')
-    
-    Vph_mag = np.abs(Vph_mat)
-    Vph_phase_rad = np.angle(Vph_mat)
-    Vph_phase_deg = np.rad2deg(Vph_phase_rad)
-
+    print(f'| {fault_types[fault_type]} at Bus {fault_bus}, phase {fault_phases}                 |')
+    print(f'| Prefault Voltage: {Vf:.3f} (pu)                                  |')
+    print(f'| Fault Impedance: {Zf:.3f} (pu)                                   |')
+    print('=================================================================')  
+    print('| Phase Currents                                                |')
+    print('|            phase a    |        phase b    |      phase c      |')
+    print('|     ------------------|-------------------|-------------------|')
+    print(f'|     Mag (pu) Ang (deg)| Mag (pu) Ang (deg)| Mag (pu) Ang (deg)|')
+    print(f'|       {abs(Iph[0]):.3f}     {np.rad2deg(np.angle(Iph[0])):.3f} |   {abs(Iph[1]):.3f}     {np.rad2deg(np.angle(Iph[1])):.3f} |   {abs(Iph[2]):.3f}     {np.rad2deg(np.angle(Iph[2])):.3f} |')
+    print('|                                                               |')
+    print('=================================================================')  
+    print('| Phase Line-to-Ground Voltages                                 |')
+    print('=================================================================')  
+    print('|            phase a    |        phase b    |      phase c      |')
+    print('|Bus| ------------------|-------------------|-------------------|')
+    print(f'|   | Mag (pu) Ang (deg)| Mag (pu) Ang (deg)| Mag (pu) Ang (deg)|')
+    print('|---|-------------------|-------------------|-------------------|')
     for i in range(Vph_mat.shape[0]):
-        print(f'| {i+1} | {Vph_mag[i,0]:6.3f} {Vph_phase_deg[i,0]:6.2f}       {Vph_mag[i,1]:6.3f}   {Vph_phase_deg[i,1]:6.2f}    {Vph_mag[i,2]:6.3f}   {Vph_phase_deg[i,2]:6.2f}   |')
-    
+        print(f'| {i+1} |   {abs(Vph_mat[i,0]):.3f}     {np.rad2deg(np.angle(Vph_mat[i,0])):.3f} |     {abs(Vph_mat[i,1]):.3f}   {np.rad2deg(np.angle(Vph_mat[i,1])):.3f} |     {abs(Vph_mat[i,2]):.3f}   {np.rad2deg(np.angle(Vph_mat[i,2])):.3f} |')
     print('=================================================================')  
     return
+# %%
