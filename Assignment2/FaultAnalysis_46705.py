@@ -28,19 +28,15 @@ def Calculate_Sequence_Fault_Currents(Zbus0,Zbus1,Zbus2,bus_to_ind,fault_bus,fau
     Iseq = np.zeros(3,dtype=complex)
     fb = bus_to_ind[fault_bus]
     if fault_type == 0:
-        ''' Insert your code'''
         Iseq[0] = Iseq[2] = 0
         Iseq[1] = Vf/Zbus1[fb,fb]
     elif fault_type == 1:
-        ''' Insert your code'''
         Iseq[0] = Iseq[1] = Iseq[2] = Vf/(Zbus0[fb,fb] + Zbus1[fb,fb] + Zbus2[fb,fb] + 3*Zf)
     elif fault_type == 2:
-        ''' Insert your code'''
         Iseq[0] = 0
         Iseq[1] = Vf/(Zbus1[fb,fb] + Zbus2[fb, fb] + Zf)
         Iseq[2] = -Iseq[1]
     elif fault_type == 3:
-        ''' Insert your code'''
         Zeq = Zbus2[fb,fb]*(Zbus0[fb,fb] + 3*Zf)/(Zbus2[fb,fb] + Zbus0[fb,fb] + 3*Zf)
         Iseq[1] = Vf/(Zbus1[fb,fb] + Zeq)
         Iseq[2] = -Iseq[1]*(Zbus0[fb,fb] + 3*Zf)/(Zbus0[fb,fb] + Zbus2[fb,fb] + 3*Zf)
@@ -52,26 +48,38 @@ def Calculate_Sequence_Fault_Currents(Zbus0,Zbus1,Zbus2,bus_to_ind,fault_bus,fau
 # 1.2 the Calculate_Sequence_Fault_Voltages() function
 def Calculate_Sequence_Fault_Voltages(Zbus0,Zbus1,Zbus2,bus_to_ind,fault_bus,Vf,Iseq):
     fb = bus_to_ind[fault_bus]
-    V1 = Vf - Zbus1[fb,fb]*Iseq[1]
-    V2 = -Zbus2[fb,fb]*Iseq[2]
-    V0 = -Zbus0[fb,fb]*Iseq[0]
-    Vseq_mat = np.array([V0, V1, V2], dtype = complex)
+    total_bus_number = Zbus0.shape[0]
+    temp_list = []
+    for i in range(total_bus_number):
+        bus_index = bus_to_ind[i+1]
+        V1 = Vf - Zbus1[bus_index,fb]*Iseq[1]
+        V2 = -Zbus2[bus_index,fb]*Iseq[2]
+        V0 = -Zbus0[bus_index,fb]*Iseq[0]
+        temp_list.append([V0,V1,V2])
+    Vseq_mat = np.array(temp_list, dtype = complex)
     return Vseq_mat
 
 # 1.3. the Convert_Sequence2Phase_Currents() function
 def Convert_Sequence2Phase_Currents(Iseq):
     theta = np.deg2rad(120)
     a = np.exp(1j*theta)
-    T = np.array([[1,1,1], [1, a**2, a], [1, a, a**2]])
-    Iph = T @ Iseq
+    Ir = Iseq[0] + Iseq[1] + Iseq[2]
+    Is = Iseq[0] + a**2*Iseq[1] + a*Iseq[2]
+    It = Iseq[0] + a*Iseq[1] + a**2*Iseq[2]
+    Iph = np.array([Ir,Is,It], dtype = complex)
     return Iph
 
 # 1.4 the Convert_Sequence2Phase_Voltages() function
 def Convert_Sequence2Phase_Voltages(Vseq_mat):
     theta = np.deg2rad(120)
     a = np.exp(1j*theta)
-    T = np.array([[1,1,1], [1, a**2, a], [1, a, a**2]])
-    Vph_mat = T @ Vseq_mat
+    temp_list = []
+    for V_seq in Vseq_mat:
+        VR = V_seq[0] + V_seq[1] + V_seq[2]
+        VS = V_seq[0] + a**2 * V_seq[1] + a*V_seq[2]
+        VT = V_seq[0] + a*V_seq[1] + a**2*V_seq[2]
+        temp_list.append([VR, VS, VT])
+    Vph_mat = np.array(temp_list, dtype = complex)
     return Vph_mat
 
 # ####################################################

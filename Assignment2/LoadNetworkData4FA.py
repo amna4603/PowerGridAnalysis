@@ -136,7 +136,7 @@ def LoadNetworkData4FA(filename):
         #zero sequence
         Z0 = 1j*X0*mva_base/MVA_size 
         if ground:
-            Z0 += Xn
+            Z0 += 1j*Xn*3*mva_base/MVA_size
         Y0 = 1/Z0
         Ybus0[ind_bus,ind_bus]+= Y0
    
