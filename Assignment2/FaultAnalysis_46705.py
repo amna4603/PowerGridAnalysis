@@ -92,36 +92,121 @@ def DisplayFaultAnalysisResults(Iph,Vph_mat,fault_bus,fault_type,Zf,Vf):
                    'Line-to-Line fault',
                    'Double Line-to-Ground fault'
                    ]
+ 
+    ZERO_THRESHOLD = 1e-6  # magnitudes below this are treated as zero
+ 
+    def clean(val):
+        mag = abs(val)
+        ang = np.rad2deg(np.angle(val))
+        if mag < ZERO_THRESHOLD:
+            mag, ang = 0.0, 0.0
+        return mag, ang
+ 
+    Iph_clean = [clean(Iph[k]) for k in range(3)]
+ 
     fault_phases = ''
-    if Iph[0] != 0:
-        fault_phases += 'a'
-    if Iph[1] != 0:
-        fault_phases += 'b'
-    if Iph[2] != 0:
-        fault_phases += 'c'
-
-    print('=================================================================')
-    print('|                    Fault Analysis Results                     |')
-    print('=================================================================')
-    print(f'| {fault_types[fault_type]} at Bus {fault_bus}, phase {fault_phases}                 |')
-    print(f'| Prefault Voltage: {Vf:.3f} (pu)                                  |')
-    print(f'| Fault Impedance: {Zf:.3f} (pu)                                   |')
-    print('=================================================================')  
-    print('| Phase Currents                                                |')
-    print('|            phase a    |        phase b    |      phase c      |')
-    print('|     ------------------|-------------------|-------------------|')
-    print(f'|     Mag (pu) Ang (deg)| Mag (pu) Ang (deg)| Mag (pu) Ang (deg)|')
-    print(f'|       {abs(Iph[0]):.3f}     {np.rad2deg(np.angle(Iph[0])):.3f} |   {abs(Iph[1]):.3f}     {np.rad2deg(np.angle(Iph[1])):.3f} |   {abs(Iph[2]):.3f}     {np.rad2deg(np.angle(Iph[2])):.3f} |')
-    print('|                                                               |')
-    print('=================================================================')  
-    print('| Phase Line-to-Ground Voltages                                 |')
-    print('=================================================================')  
-    print('|            phase a    |        phase b    |      phase c      |')
-    print('|Bus| ------------------|-------------------|-------------------|')
-    print(f'|   | Mag (pu) Ang (deg)| Mag (pu) Ang (deg)| Mag (pu) Ang (deg)|')
-    print('|---|-------------------|-------------------|-------------------|')
+    if Iph_clean[0][0] != 0: fault_phases += 'a'
+    if Iph_clean[1][0] != 0: fault_phases += 'b'
+    if Iph_clean[2][0] != 0: fault_phases += 'c'
+ 
+    # ── Layout constants ─────────────────────────────────────────────
+    # Total line = 67 chars.  Structure: |<inner 65 chars>|
+    # Phase section (no bus col):  | CA | CB | CC |
+    #   1 + CA + 1 + CB + 1 + CC + 1 = 65  -> CA=CB=CC=20, each col 20 chars (incl leading |)
+    # Voltage section (with bus col): | BUS | CA | CB | CC |
+    #   1 + 3 + 1 + CA + 1 + CB + 1 + CC + 1 = 65 -> CA=CB=CC=19
+ 
+    SEP  = '=' * 67          # full-width separator
+    DASH = '-' * 67          # used nowhere but kept for reference
+ 
+    def r(inner):
+        """Print |<inner exactly 65 chars>|"""
+        assert len(inner) == 65, f'Inner width={len(inner)}: "{inner}"'
+        print(f'|{inner}|')
+ 
+    def text_row(text):
+        r(text[:65].ljust(65))
+ 
+    # ── Data formatter (fixed width) ─────────────────────────────────
+    def fmt(m, a, w):
+        """Format magnitude+angle centred in w chars."""
+        s = f'{m:6.3f}  {a:7.2f}'   # 15 chars
+        return s.center(w)
+ 
+    # ── Phase-current section helpers (col width = 20, no bus prefix)
+    # inner = 20 + 1 + 20 + 1 + 20 + 1 + 1(leading space) ... recalc:
+    # | SP CA | CB | CC |  where SP=1, CA=19, CB=19, CC=19 gives 1+19+1+19+1+19+1=61 -> too short
+    # Use CA=CB=CC=21:  1+21+1+21+1+21 = 66 -> 1 too many
+    # Use 1 leading space + 20+|+20+|+20+| = 1+20+1+20+1+20+1 = 64 -> 1 short
+    # Best: leading | already in print, so inner=65:
+    #   space(1) + col(20) + |(1) + col(20) + |(1) + col(20) + |(1) = 64 -> 1 short
+    #   space(2) + col(20) + |(1) + col(20) + |(1) + col(20) + |(1) = 65 ✓
+    CA = 20  # phase column content width (current section)
+ 
+    def cur_sep():
+        r(' ' + '-'*CA + '|' + '-'*CA + '|' + '-'*CA + '|' + '-')
+        # 1 + 20 + 1 + 20 + 1 + 20 + 1 + 1 = 65 ✓... let's count: ' '=1, '-'*20=20, |=1, '-'*20=20, |=1, '-'*20=20, |=1, '-'=1 = 65 ✓
+ 
+    def cur_phase_hdr():
+        def ph(): return f'{"---- Phase a ----":^{CA}}'
+        labels = ['Phase a','Phase b','Phase c']
+        cols = [f'---- {l} ----'.center(CA) for l in labels]
+        r(' ' + cols[0] + '|' + cols[1] + '|' + cols[2] + '|' + ' ')
+ 
+    def cur_col_hdr():
+        h = 'Mag(pu) Ang(deg)'.center(CA)
+        r(' ' + h + '|' + h + '|' + h + '|' + ' ')
+ 
+    def cur_data(ma, aa, mb, ab, mc, ac):
+        r(' ' + fmt(ma,aa,CA) + '|' + fmt(mb,ab,CA) + '|' + fmt(mc,ac,CA) + '|' + ' ')
+ 
+    # ── Voltage section helpers (bus col=4, then col width=19 each)
+    # |BBBB|CA|CB|CC|  inner=65:  4+1+19+1+19+1+19+1 = 65 ✓
+    BP = 4   # bus prefix width (e.g. ' 1  ' or 'Bus ' or '----')
+    CV = 19  # voltage phase column content width
+ 
+    def vol_sep(bus_prefix):
+        r(bus_prefix[:BP] + '|' + '-'*CV + '|' + '-'*CV + '|' + '-'*CV + '|')
+ 
+    def vol_phase_hdr(bus_prefix):
+        labels = ['Phase a','Phase b','Phase c']
+        cols = [f'---- {l} ----'.center(CV) for l in labels]
+        r(bus_prefix[:BP] + '|' + cols[0] + '|' + cols[1] + '|' + cols[2] + '|')
+ 
+    def vol_col_hdr(bus_prefix):
+        h = 'Mag(pu) Ang(deg)'.center(CV)
+        r(bus_prefix[:BP] + '|' + h + '|' + h + '|' + h + '|')
+ 
+    def vol_data(bus_nr, ma, aa, mb, ab, mc, ac):
+        bp = f' {bus_nr:2d} '
+        r(bp + '|' + fmt(ma,aa,CV) + '|' + fmt(mb,ab,CV) + '|' + fmt(mc,ac,CV) + '|')
+ 
+    # ── Print the table ──────────────────────────────────────────────
+    print(SEP)
+    text_row(f' {"Fault Analysis Results":^63}')
+    print(SEP)
+    text_row(f' {fault_types[fault_type]} at Bus {fault_bus}, phase {fault_phases}.')
+    text_row(f' Prefault Voltage: Vf = {Vf:.3f}  (pu)')
+    text_row(f' Fault Impedance:  Zf = {Zf:.3f}  (pu)')
+    print(SEP)
+    text_row(f' Phase Currents {"-" * 50}')
+    cur_phase_hdr()
+    cur_sep()
+    cur_col_hdr()
+    cur_sep()
+    Ima,Iaa = Iph_clean[0]; Imb,Iab = Iph_clean[1]; Imc,Iac = Iph_clean[2]
+    cur_data(Ima,Iaa,Imb,Iab,Imc,Iac)
+    print(SEP)
+    text_row(f' Phase Line-to-Ground Voltages {"-" * 35}')
+    print(SEP)
+    vol_phase_hdr('    ')
+    vol_sep('Bus ')
+    vol_col_hdr('    ')
+    vol_sep('----')
     for i in range(Vph_mat.shape[0]):
-        print(f'| {i+1} |   {abs(Vph_mat[i,0]):.3f}     {np.rad2deg(np.angle(Vph_mat[i,0])):.3f} |     {abs(Vph_mat[i,1]):.3f}   {np.rad2deg(np.angle(Vph_mat[i,1])):.3f} |     {abs(Vph_mat[i,2]):.3f}   {np.rad2deg(np.angle(Vph_mat[i,2])):.3f} |')
-    print('=================================================================')  
+        Vma,Vaa = clean(Vph_mat[i,0])
+        Vmb,Vab = clean(Vph_mat[i,1])
+        Vmc,Vac = clean(Vph_mat[i,2])
+        vol_data(i+1, Vma,Vaa, Vmb,Vab, Vmc,Vac)
+    print(SEP)
     return
-# %%
