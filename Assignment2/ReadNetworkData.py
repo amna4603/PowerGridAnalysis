@@ -158,7 +158,7 @@ def parse_load_data(row_):
 
 def parse_transformer_data(row_):
     # unpack the values:
-    fr,to,br_id,R,X,n,ang1,MVA_rate,fr_co,to_co,X2,X0 = row_[0:12]
+    fr,to,br_id,R,X,n,ang1,MVA_rate,fr_co,to_co,X2,X0,Xn = row_[0:13]
     fr = int(fr)    #convert the srting to int
     to = int(to)    #convert the string to int
     br_id = re.findall("'([^']*)'",br_id)[0]
@@ -170,10 +170,11 @@ def parse_transformer_data(row_):
     ang1 = float(ang1) #convert the ang1 str to float
     X2 = float(X2)
     X0 = float(X0) #typo in th eoriginal file (X2) instad of (X0)
+    Xn = float(Xn)
     MVA_rate=float(MVA_rate)
     fr_co = int(fr_co)    #convert the srting to int
     to_co = int(to_co)    #convert the string to int
-    return [fr,to,br_id,R,X,n,ang1,MVA_rate,fr_co,to_co,X2,X0] 
+    return [fr,to,br_id,R,X,n,ang1,MVA_rate,fr_co,to_co,X2,X0,Xn]
 
     
 

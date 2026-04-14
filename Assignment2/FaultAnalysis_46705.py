@@ -29,7 +29,8 @@ def Calculate_Sequence_Fault_Currents(Zbus0,Zbus1,Zbus2,bus_to_ind,fault_bus,fau
     fb = bus_to_ind[fault_bus]
     if fault_type == 0:
         Iseq[0] = Iseq[2] = 0
-        Iseq[1] = Vf/(Zbus1[fb,fb] + Zf)
+        Iseq[1] = Vf/Zbus1[fb,fb] + Zf
+        print(f'Zbus1[fb,fb]={Zbus1[fb,fb]:.4f}, Zf={Zf:.4f}, Iseq[1]={Iseq[1]:.4f}')
     elif fault_type == 1:
         Iseq[0] = Iseq[1] = Iseq[2] = Vf/(Zbus0[fb,fb] + Zbus1[fb,fb] + Zbus2[fb,fb] + 3*Zf)
     elif fault_type == 2:
