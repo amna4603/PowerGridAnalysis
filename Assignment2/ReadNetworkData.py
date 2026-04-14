@@ -160,7 +160,8 @@ def parse_transformer_data(row_):
     # unpack the values:
     fr,to,br_id,R,X,n,ang1,MVA_rate,fr_co,to_co,X2,X0,Xn = row_[0:13]
     fr = int(fr)    #convert the srting to int
-    to = int(to)    #convert the string to int
+    to = int(to) 
+     #convert the string to int
     br_id = re.findall("'([^']*)'",br_id)[0]
 #    br_id = re.findall(r"'.*'",br_id)[0] #regular expression to find the id str
 #    br_id = br_id[1:-1]     #get the id out of the string
@@ -174,7 +175,7 @@ def parse_transformer_data(row_):
     MVA_rate=float(MVA_rate)
     fr_co = int(fr_co)    #convert the srting to int
     to_co = int(to_co)    #convert the string to int
-    return [fr,to,br_id,R,X,n,ang1,MVA_rate,fr_co,to_co,X2,X0,Xn]
+    return [fr,to,br_id,R,X,n,ang1,MVA_rate,fr_co,to_co,X2,X0,Xn] 
 
     
 

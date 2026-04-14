@@ -32,16 +32,26 @@ def Calculate_Sequence_Fault_Currents(Zbus0,Zbus1,Zbus2,bus_to_ind,fault_bus,fau
         Iseq[1] = Vf/Zbus1[fb,fb] + Zf
         print(f'Zbus1[fb,fb]={Zbus1[fb,fb]:.4f}, Zf={Zf:.4f}, Iseq[1]={Iseq[1]:.4f}')
     elif fault_type == 1:
-        Iseq[0] = Iseq[1] = Iseq[2] = Vf/(Zbus0[fb,fb] + Zbus1[fb,fb] + Zbus2[fb,fb] + 3*Zf)
+        if np.isinf(Zbus0[fb,fb]):
+            print('Warning: No zero-sequence path to ground. SLG fault current is zero.')
+            Iseq[0] = Iseq[1] = Iseq[2] = 0
+        else:
+            Iseq[0] = Iseq[1] = Iseq[2] = Vf/(Zbus0[fb,fb] + Zbus1[fb,fb] + Zbus2[fb,fb] + 3*Zf)
     elif fault_type == 2:
         Iseq[0] = 0
         Iseq[1] = Vf/(Zbus1[fb,fb] + Zbus2[fb, fb] + Zf)
         Iseq[2] = -Iseq[1]
     elif fault_type == 3:
-        Zeq = Zbus2[fb,fb]*(Zbus0[fb,fb] + 3*Zf)/(Zbus2[fb,fb] + Zbus0[fb,fb] + 3*Zf)
-        Iseq[1] = Vf/(Zbus1[fb,fb] + Zeq)
-        Iseq[2] = -Iseq[1]*(Zbus0[fb,fb] + 3*Zf)/(Zbus0[fb,fb] + Zbus2[fb,fb] + 3*Zf)
-        Iseq[0] = -Iseq[1]*Zbus2[fb,fb]/(Zbus0[fb,fb] + Zbus2[fb,fb] + 3*Zf)
+        if np.isinf(Zbus0[fb,fb]):
+            print('Warning: No zero-sequence path to ground. DLG fault reduces to LL fault.')
+            Iseq[0] = 0
+            Iseq[1] = Vf/(Zbus1[fb,fb] + Zbus2[fb,fb] + Zf)
+            Iseq[2] = -Iseq[1]
+        else:
+            Zeq = Zbus2[fb,fb]*(Zbus0[fb,fb] + 3*Zf)/(Zbus2[fb,fb] + Zbus0[fb,fb] + 3*Zf)
+            Iseq[1] = Vf/(Zbus1[fb,fb] + Zeq)
+            Iseq[2] = -Iseq[1]*(Zbus0[fb,fb] + 3*Zf)/(Zbus0[fb,fb] + Zbus2[fb,fb] + 3*Zf)
+            Iseq[0] = -Iseq[1]*Zbus2[fb,fb]/(Zbus0[fb,fb] + Zbus2[fb,fb] + 3*Zf)
     else:
         print('Unknown Fault Type')
     return Iseq
@@ -55,7 +65,7 @@ def Calculate_Sequence_Fault_Voltages(Zbus0,Zbus1,Zbus2,bus_to_ind,fault_bus,Vf,
         bus_index = bus_to_ind[i+1]
         V1 = Vf - Zbus1[bus_index,fb]*Iseq[1]
         V2 = -Zbus2[bus_index,fb]*Iseq[2]
-        V0 = -Zbus0[bus_index,fb]*Iseq[0]
+        V0 = 0 if Iseq[0] == 0 else -Zbus0[bus_index,fb]*Iseq[0]
         temp_list.append([V0,V1,V2])
     Vseq_mat = np.array(temp_list, dtype = complex)
     return Vseq_mat
