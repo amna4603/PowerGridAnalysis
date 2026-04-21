@@ -48,45 +48,54 @@ def LoadNetworkData4FA(filename):
         Ybus0[ind_to,ind_fr]+= -Y0
 
     # Add the transformer model to Ybus
-    #bus_fr, bus_to, id_, R,X,n,ang1,fr_co, to_co, X2, X0 
+    #bus_fr, bus_to, id_, R,X,n,ang1,fr_co, to_co, X2, X0, Xn
+    #bus_fr, bus_to, id_, R,X,n,ang1,fr_co, to_co, X2, X0, Xn
     for line in tran_data:
-        bus_fr, bus_to, id_, R,X,n,ang1, MVA_rate,fr_co, to_co, X2, X0 = line #unpack
+        bus_fr, bus_to, id_, R,X,n,ang1, MVA_rate,fr_co, to_co, X2, X0, Xn = line #unpack
         ind_fr = bus_to_ind[bus_fr]  # get the matrix index corresponding to the bus    
         ind_to = bus_to_ind[bus_to]  # same here
 
-        
+
         #positive sequence
         Zeq = 1j*X; Yeq = 1/Zeq
         Yps_mat = np.zeros((2,2),dtype=complex)
-        Yps_mat[0,0] = Yeq  
+        Yps_mat[0,0] = Yeq
         Yps_mat[0,1] = -Yeq
-        Yps_mat[1,0] = -Yeq          
+        Yps_mat[1,0] = -Yeq
         Yps_mat[1,1] = Yeq
         ind_ = np.array([ind_fr,ind_to])
         Ybus[np.ix_(ind_,ind_)] += Yps_mat
-        
+
         #negative sequence
         Z2 = 1j*X2; Y2 = 1/Z2
         Yps_mat = np.zeros((2,2),dtype=complex)
-        Yps_mat[0,0] = Y2 
+        Yps_mat[0,0] = Y2
         Yps_mat[0,1] = -Y2
-        Yps_mat[1,0] = -Y2           
+        Yps_mat[1,0] = -Y2
         Yps_mat[1,1] = Y2
         ind_ = np.array([ind_fr,ind_to])
         Ybus2[np.ix_(ind_,ind_)] += Yps_mat
-        
+
         #Zero sequence
-        Z0 = 1j*X0; Y0 = 1/Z0
+        Z0 = 1j*X0
+        if fr_co == 2 or to_co == 2:
+            Z0 += 3*1j*Xn  # only add grounding reactance if at least one side is Yg
+        Y0 = 1/Z0
         Yps_mat = np.zeros((2,2),dtype=complex)
-        if fr_co == 2 and to_co == 2:
+        if fr_co == 2 and to_co == 2:       # Yg-Yg: full zero seq path both sides
             Yps_mat[0,0] = Y0
             Yps_mat[0,1] = -Y0
-            Yps_mat[1,0] = -Y0 
+            Yps_mat[1,0] = -Y0
             Yps_mat[1,1] = Y0
-        elif fr_co == 2 and to_co == 3:
+        elif fr_co == 2 and to_co == 3:     # Yg-D: zero seq path on Yg side only
             Yps_mat[0,0] = Y0
-        elif fr_co == 3 and to_co == 2:
-            Yps_mat[1,1] = Y0       
+        elif fr_co == 3 and to_co == 2:     # D-Yg: zero seq path on Yg side only
+            Yps_mat[1,1] = Y0
+        elif fr_co == 2 and to_co == 1:     # Yg-Y: zero seq path on Yg side only
+            Yps_mat[0,0] = Y0
+        elif fr_co == 1 and to_co == 2:     # Y-Yg: zero seq path on Yg side only
+            Yps_mat[1,1] = Y0
+        # D-D, Y-Y, Y-D, D-Y: Yps_mat stays zero - no zero seq path
         ind_ = np.array([ind_fr,ind_to])
         Ybus0[np.ix_(ind_,ind_)] += Yps_mat
         
@@ -100,8 +109,8 @@ def LoadNetworkData4FA(filename):
     bus_labels = []
     for line in bus_data:
         b_nr, label, v_init, theta_init, code, kv, v_low, v_high = line
-        buscode.append(code)
-        bus_labels.append(label)
+        buscode.append(code)  # code is bus type (PQ, PV, slack)
+        bus_labels.append(label)  # label is the bus name string ()
         bus_kv.append(kv)
     buscode = np.array(buscode)
     bus_kv = np.array(bus_kv)
@@ -111,7 +120,7 @@ def LoadNetworkData4FA(filename):
     S_LD = np.zeros(N,dtype=complex)
         
     for line in load_data:
-        bus_nr, PLD, QLD = line
+        bus_nr, PLD, QLD = line  
         ind_nr = bus_to_ind[bus_nr]
         SLD_val =(PLD+1j*QLD)/MVA_base
         Sbus[ind_nr] += -SLD_val # load is a negative injection...
@@ -122,10 +131,10 @@ def LoadNetworkData4FA(filename):
         bus_nr, MVA_size, p_gen, p_max, q_max, q_min,  X, X2, X0, Xn, ground = line
         ind_nr = bus_to_ind[bus_nr]
         SLD = (p_gen)/MVA_base
-        Sbus[ind_nr] += SLD # gen is a negative injection...
+        Sbus[ind_nr] += SLD # gen is a positive injection...
         ind_bus = bus_to_ind[bus_nr]
-        #positive sequence
-        Z = 1j*X*mva_base/MVA_size; 
+        #positive sequence - because X is given in per unit on the generator base, we need to convert it to the system MVA base
+        Z = 1j*X*mva_base/MVA_size;   
         Y = 1/Z        
         #Update the bus admittance matrix
         Ybus[ind_bus,ind_bus]+= Y
@@ -139,10 +148,18 @@ def LoadNetworkData4FA(filename):
             Z0 += 1j*Xn*3*mva_base/MVA_size
         Y0 = 1/Z0
         Ybus0[ind_bus,ind_bus]+= Y0
-   
-    Zbus0 = np.linalg.inv(Ybus0)
-    Zbus1 = np.linalg.inv(Ybus)
-    Zbus2 = np.linalg.inv(Ybus2)
+
+    if np.linalg.matrix_rank(Ybus0) < N:
+        print('Warning: Ybus0 is singular (no zero-sequence path to ground). Zero-sequence impedance is infinite - unbalanced faults will produce no fault current.')
+        Zbus0 = np.full((N,N), np.inf, dtype=complex)
+    else:
+        Zbus0 = np.linalg.inv(Ybus0)
     
-    return
+    Zbus1 = np.linalg.inv(Ybus)
+
+    Zbus2 = np.linalg.inv(Ybus2)
+       
+        
+    
+    return Zbus0, Zbus1, Zbus2
     
